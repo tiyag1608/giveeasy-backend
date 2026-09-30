@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GiveEasy - Real-Time Donation Platform API & Live Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Socket.io Client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #121826;
+      --card-border: #1e293b;
+      --card-hover: #192237;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --purple: #8b5cf6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --font-main: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Ambient background lights */
+    .ambient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .logo-text h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(to right, #ffffff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #031122;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--card-hover);
+      border-color: #334155;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 28px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Section Headings */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: #334155;
+    }
+
+    /* Role Switcher Toolbar */
+    .role-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .role-options {
+      display: flex;
+      gap: 8px;
+    }
+
+    .role-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .role-btn.active {
+      background: #1e293b;
+      border-color: #38bdf8;
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    /* Campaign Card */
+    .campaign-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .campaign-card {
+      background: #0f1624;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .campaign-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .campaign-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .campaign-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .campaign-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+    }
+
+    .campaign-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .progress-raised {
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .progress-target {
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      border-radius: 10px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+
+    .campaign-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .donor-stat {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .donor-stat strong {
+      color: #fff;
+    }
+
+    .quick-donate-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .donate-input {
+      width: 90px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    /* Live Feed & Notification Sidebar */
+    .live-feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .feed-item {
+      background: #0f1624;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .feed-title {
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feed-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .feed-body {
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.2);
+      min-width: 320px;
+      max-width: 420px;
+      animation: slideIn 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast-title {
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #38bdf8;
+    }
+
+    .toast-msg {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #121826;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .receipt-container {
+      background: #0f1624;
+      border: 1px dashed #38bdf8;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* Tech Stack Badges */
+    .tech-pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <div class="container">
+    <!-- Top Header -->
+    <header>
+      <div class="logo-badge">
+        <div class="logo-icon">💝</div>
+        <div class="logo-text">
+          <h1>GiveEasy Backend Platform</h1>
+          <p>Node.js &bull; Express &bull; MongoDB &bull; Socket.io &bull; Firebase Admin</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-pill">
+          <div class="pulse-dot"></div>
+          <span id="socket-status">Socket.io Connected</span>
+        </div>
+        <a href="/api-docs" target="_blank" class="btn btn-secondary">
+          📑 Swagger API Docs
+        </a>
+        <a href="/api/health" target="_blank" class="btn btn-secondary">
+          💚 Health API
+        </a>
+      </div>
+    </header>
+
+    <!-- Role Switcher & Live Token Bar -->
+    <div class="role-bar">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #cbd5e1;">Current User Context:</span>
+        <div class="role-options">
+          <button class="role-btn active" id="btn-role-donor" onclick="switchRole('donor')">Donor (Priya Verma)</button>
+          <button class="role-btn" id="btn-role-admin" onclick="switchRole('admin')">Super Admin</button>
+          <button class="role-btn" id="btn-role-ngo" onclick="switchRole('ngo')">NGO Representative</button>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); font-family: var(--font-mono);">
+        Bearer Token: <span id="token-preview" style="color: #38bdf8;">Loading JWT...</span>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Left Column: Live Campaigns & Impact Progress Bars -->
+      <div>
+        <div class="section-head">
+          <div class="section-title">
+            <span>🔥</span> Active Campaigns & Real-Time Impact
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadCampaigns()">↻ Refresh</button>
+        </div>
+
+        <div id="campaign-container" class="campaign-list">
+          <!-- Dynamic campaigns populated here -->
+          <div style="color: var(--text-muted); padding: 20px; text-align: center;">Loading campaigns from MongoDB...</div>
+        </div>
+
+        <!-- Causes Section (Demonstrating Admin Verification Flow) -->
+        <div class="section-head" style="margin-top: 36px;">
+          <div class="section-title">
+            <span>🏛️</span> NGO Causes & Admin Verification
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="loadCauses()">↻ Refresh Causes</button>
+        </div>
+        <div id="causes-container" class="campaign-list">
+          <!-- Dynamic causes populated here -->
+        </div>
+      </div>
+
+      <!-- Right Column: Real-Time WebSocket Feed & FCM Push Logs -->
+      <div>
+        <div class="section-head">
+          <div class="section-title">
+            <span>⚡</span> Real-Time WebSocket Feed
+          </div>
+          <span style="font-size: 12px; color: var(--accent); font-family: var(--font-mono);">LIVE</span>
+        </div>
+
+        <div class="card" style="padding: 16px;">
+          <div id="feed-container" class="live-feed-list">
+            <div class="feed-item">
+              <div class="feed-header">
+                <span class="feed-title">🔌 Socket.io Ready</span>
+                <span class="feed-time">Just now</span>
+              </div>
+              <div class="feed-body">
+                Connected to WebSocket channel. Real-time donation broadcasts and campaign progress updates will stream here.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick API Endpoint Links for Viva Evaluation -->
+        <div class="card">
+          <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #fff;">
+            🎯 Assignment Checklist
+          </h3>
+          <ul style="list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Modular REST API:</strong> Express routes + controllers</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Mongoose ODM:</strong> User, Cause, Campaign, Donation</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Authentication:</strong> JWT + Firebase Auth verify</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>WebSockets:</strong> Real-time progress updates</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Push Receipts:</strong> Firebase Cloud Messaging</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Tax Receipts:</strong> Section 80G Certificate API</span>
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--accent);">✓</span>
+              <span><strong>Admin Tools:</strong> Analytics & Cause Verification</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Tax Receipt Modal -->
+  <div class="modal-overlay" id="receipt-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px;">
+        🏛️ Form 10BE / 80G Tax Exemption Certificate
+      </h2>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Generated dynamically under Section 80G(5)(vi) of the Income Tax Act, 1961
+      </p>
+      <div id="receipt-content" class="receipt-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentRole = 'donor';
+    let currentToken = '';
+    let currentUser = null;
+    let socket = null;
+
+    // Credentials map for quick switching during viva
+    const credentials = {
+      donor: { email: 'priya@example.com', password: 'donor123' },
+      admin: { email: 'admin@giveeasy.org', password: 'admin123' },
+      ngo: { email: 'ngo@careindia.org', password: 'ngo123' }
+    };
+
+    // Initialize Socket.io
+    function setupSocket() {
+      socket = io();
+
+      socket.on('connect', () => {
+        document.getElementById('socket-status').innerText = 'Socket.io Connected';
+        document.getElementById('socket-status').style.color = '#10b981';
+      });
+
+      socket.on('disconnect', () => {
+        document.getElementById('socket-status').innerText = 'Socket Disconnected';
+        document.getElementById('socket-status').style.color = '#ef4444';
+      });
+
+      // Campaign progress real-time update
+      socket.on('campaign:progress_updated', (data) => {
+        addFeedItem('📈 Real-time Campaign Progress', `Campaign "${data.title}" received a contribution! Raised: ₹${data.raisedAmount.toLocaleString()} (${data.percentageRaised}%)`);
+        showToast('🎉 Live Contribution Received!', `₹${data.latestDonation ? data.latestDonation.amount : ''} donated to ${data.title}`);
+        updateCampaignCard(data);
+      });
+
+      // Cause verification status update
+      socket.on('cause:status_updated', (data) => {
+        addFeedItem('🏛️ Cause Status Changed', `Cause "${data.title}" marked as ${data.status.toUpperCase()} by Admin.`);
+        showToast('🏛️ Cause Verification Update', `Cause status is now ${data.status}`);
+        loadCauses();
+      });
+
+      // Push notification broadcast
+      socket.on('notification:global', (notif) => {
+        showToast(notif.title, notif.body);
+      });
+    }
+
+    // Role switcher
+    async function switchRole(role) {
+      currentRole = role;
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-role-${role}`).classList.add('active');
+
+      const creds = credentials[role];
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(creds)
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentToken = data.token;
+          currentUser = data.user;
+          document.getElementById('token-preview').innerText = `${currentToken.substring(0, 16)}... (${data.user.role})`;
+          loadCauses();
+        }
+      } catch (e) {
+        console.error('Login error:', e);
+      }
+    }
+
+    // Load active campaigns
+    async function loadCampaigns() {
+      try {
+        const res = await fetch('/api/campaigns');
+        const json = await res.json();
+        const container = document.getElementById('campaign-container');
+        container.innerHTML = '';
+
+        json.data.forEach(camp => {
+          const card = document.createElement('div');
+          card.className = 'campaign-card';
+          card.id = `camp-card-${camp._id}`;
+
+          const pct = Math.min(100, camp.percentageRaised || ((camp.raisedAmount / camp.targetAmount) * 100).toFixed(1));
+
+          card.innerHTML = `
+            <div class="campaign-top">
+              <div>
+                <span class="campaign-badge">${camp.category}</span>
+                <div class="campaign-title">${camp.title}</div>
+                <div class="campaign-desc">${camp.description}</div>
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-stats">
+                <span class="progress-raised">₹${camp.raisedAmount.toLocaleString()} raised (${pct}%)</span>
+                <span class="progress-target">Goal: ₹${camp.targetAmount.toLocaleString()}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="fill-${camp._id}" style="width: ${pct}%;"></div>
+              </div>
+            </div>
+
+            <div class="campaign-footer">
+              <div class="donor-stat">
+                <strong>${camp.donorCount || 0}</strong> Generous Donors &bull; <span>${camp.impactMetric?.metricName || 'People Impacted'}: <strong>${camp.impactMetric?.currentCount || 0}</strong></span>
+              </div>
+              <div class="quick-donate-wrap">
+                <input type="number" id="amt-${camp._id}" class="donate-input" value="1000" min="100" step="500">
+                <button class="btn btn-primary btn-sm" onclick="makeDonation('${camp._id}', '${camp.title}')">
+                  Donate ₹
+                </button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Failed to load campaigns:', err);
+      }
+    }
+
+    // Load causes (with admin verify button if current user is admin)
+    async function loadCauses() {
+      try {
+        const res = await fetch('/api/causes', {
+          headers: currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {}
+        });
+        const json = await res.json();
+        const container = document.getElementById('causes-container');
+        container.innerHTML = '';
+
+        if (!json.data || json.data.length === 0) {
+          container.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">No causes found.</div>`;
+          return;
+        }
+
+        json.data.forEach(cause => {
+          const card = document.createElement('div');
+          card.className = 'campaign-card';
+          const isPending = cause.status === 'pending';
+
+          let verifyAction = '';
+          if (currentRole === 'admin' && isPending) {
+            verifyAction = `
+              <button class="btn btn-primary btn-sm" onclick="verifyCause('${cause._id}', 'verified')">
+                Approve & Verify Cause
+              </button>
+            `;
+          }
+
+          card.innerHTML = `
+            <div class="campaign-top">
+              <div>
+                <span class="campaign-badge" style="background: ${isPending ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isPending ? '#f59e0b' : '#10b981'};">
+                  ${cause.status.toUpperCase()}
+                </span>
+                <div class="campaign-title">${cause.title}</div>
+                <div class="campaign-desc">${cause.description}</div>
+              </div>
+            </div>
+            <div class="campaign-footer">
+              <div style="font-size: 12px; color: var(--text-muted);">
+                NGO: <strong style="color: #fff;">${cause.ngoName}</strong> &bull; Reg: ${cause.ngoRegistrationNumber}
+              </div>
+              <div>${verifyAction}</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Failed to load causes:', err);
+      }
+    }
+
+    // Verify cause (Admin)
+    async function verifyCause(causeId, status) {
+      try {
+        const res = await fetch(`/api/causes/${causeId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            status,
+            verificationNotes: 'Verified during live viva demonstration.'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Cause Verified!', 'Cause is now approved and eligible for fundraising campaigns.');
+          loadCauses();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Make donation
+    async function makeDonation(campaignId, title) {
+      const input = document.getElementById(`amt-${campaignId}`);
+      const amount = Number(input.value) || 1000;
+
+      const payload = {
+        campaignId,
+        amount,
+        donorName: currentUser ? currentUser.name : 'Priya Verma',
+        donorEmail: currentUser ? currentUser.email : 'priya@example.com',
+        paymentMethod: 'UPI',
+        panNumber: 'ABCDE1234F',
+      };
+
+      try {
+        const res = await fetch('/api/donations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {})
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast('Payment Successful! 🎉', `₹${amount} donated. Receipt: ${data.data.donation.receiptNumber}`);
+          // View receipt modal button
+          setTimeout(() => {
+            viewReceipt(data.data.donation._id);
+          }, 800);
+        } else {
+          alert('Donation error: ' + data.message);
+        }
+      } catch (err) {
+        console.error('Donation error:', err);
+      }
+    }
+
+    // View official 80G tax receipt
+    async function viewReceipt(donationId) {
+      try {
+        const res = await fetch(`/api/donations/${donationId}/receipt`);
+        const json = await res.json();
+        if (json.success) {
+          const r = json.receipt;
+          const container = document.getElementById('receipt-content');
+          container.innerHTML = `
+=============================================================
+             GIVEEASY SOCIAL IMPACT TRUST
+             ${r.receiptHeader.address}
+             Reg: ${r.receiptHeader.regNumber}
+=============================================================
+DONATION RECEIPT & TAX CERTIFICATE (SECTION 80G)
+-------------------------------------------------------------
+Receipt Number:       ${r.receiptDetails.receiptNumber}
+Transaction ID:       ${r.receiptDetails.transactionId}
+Date:                 ${r.receiptDetails.dateOfDonation}
+Payment Mode:         ${r.receiptDetails.modeOfPayment}
+-------------------------------------------------------------
+Donor Name:           ${r.donorDetails.donorName}
+Donor Email:          ${r.donorDetails.donorEmail}
+PAN Number:           ${r.donorDetails.panNumber}
+-------------------------------------------------------------
+Campaign:             ${r.causeAndCampaign.campaignTitle}
+Cause:                ${r.causeAndCampaign.causeTitle}
+-------------------------------------------------------------
+AMOUNT RECEIVED:      ₹${r.receiptDetails.amountReceived.toLocaleString()}
+AMOUNT IN WORDS:      ${r.receiptDetails.amountInWords}
+ELIGIBLE DEDUCTION:   ₹${r.receiptDetails.eligibleTaxDeductionAmount.toLocaleString()} (${r.receiptDetails.deductionRate} under 80G)
+-------------------------------------------------------------
+Disclaimer: ${r.certificateDisclaimer}
+=============================================================
+          `;
+          document.getElementById('receipt-modal').classList.add('active');
+        }
+      } catch (e) {
+        console.error('Receipt fetch error:', e);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('receipt-modal').classList.remove('active');
+    }
+
+    // Update campaign card in DOM upon Socket.io event
+    function updateCampaignCard(data) {
+      const fill = document.getElementById(`fill-${data.campaignId}`);
+      if (fill) {
+        fill.style.width = `${Math.min(100, data.percentageRaised)}%`;
+      }
+      loadCampaigns();
+    }
+
+    // Append to live feed
+    function addFeedItem(title, body) {
+      const container = document.getElementById('feed-container');
+      const item = document.createElement('div');
+      item.className = 'feed-item';
+      const timeStr = new Date().toLocaleTimeString();
+
+      item.innerHTML = `
+        <div class="feed-header">
+          <span class="feed-title">${title}</span>
+          <span class="feed-time">${timeStr}</span>
+        </div>
+        <div class="feed-body">${body}</div>
+      `;
+      container.prepend(item);
+    }
+
+    // Show toast
+    function showToast(title, msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <div class="toast-title">🔔 ${title}</div>
+        <div class="toast-msg">${msg}</div>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.4s, transform 0.4s';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 400);
+      }, 4500);
+    }
+
+    // Boot
+    window.addEventListener('DOMContentLoaded', () => {
+      setupSocket();
+      switchRole('donor');
+      loadCampaigns();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+{
+  "info": {
+    "_postman_id": "giveeasy-donation-api-v1",
+    "name": "GiveEasy Donation Platform API",
+    "description": "Complete Postman collection for testing all endpoints of the GiveEasy Donation Platform (Node.js, Express, MongoDB, Socket.io, Firebase)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5050",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Donor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vikram Malhotra\",\n  \"email\": \"vikram@example.com\",\n  \"password\": \"vikram123\",\n  \"role\": \"donor\",\n  \"panNumber\": \"XYZPA9999M\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) { pm.collectionVariables.set('token', jsonData.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@giveeasy.org\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Donor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"priya@example.com\",\n  \"password\": \"donor123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Campaigns",
+      "item": [
+        {
+          "name": "Browse All Campaigns",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/campaigns?sort=popular", "host": ["{{baseUrl}}"], "path": ["api", "campaigns"], "query": [{ "key": "sort", "value": "popular" }] }
+          }
+        },
+        {
+          "name": "Get Campaign By ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/campaigns/:id", "host": ["{{baseUrl}}"], "path": ["api", "campaigns", ":id"] }
+          }
+        },
+        {
+          "name": "Create Campaign (Admin/NGO)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Winter Warmth Blankets for 1000 Homeless Families\",\n  \"description\": \"Distribute heavy thermal blankets to homeless citizens before winter.\",\n  \"causeId\": \"PASTE_VERIFIED_CAUSE_ID_HERE\",\n  \"targetAmount\": 250000,\n  \"category\": \"Disaster Relief\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/campaigns", "host": ["{{baseUrl}}"], "path": ["api", "campaigns"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Causes",
+      "item": [
+        {
+          "name": "Get Causes (Public / Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/causes", "host": ["{{baseUrl}}"], "path": ["api", "causes"] }
+          }
+        },
+        {
+          "name": "Submit Cause (NGO/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Shelter for Abandoned Senior Citizens\",\n  \"description\": \"Providing safe housing, geriatric healthcare, and hot meals.\",\n  \"category\": \"Healthcare\",\n  \"ngoName\": \"Vridhashram Care Trust\",\n  \"ngoRegistrationNumber\": \"12A/80G/DEL/2022/VRIDH9\",\n  \"contactEmail\": \"help@vridhcare.org\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/causes", "host": ["{{baseUrl}}"], "path": ["api", "causes"] }
+          }
+        },
+        {
+          "name": "Admin Verify Cause",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"verified\",\n  \"verificationNotes\": \"NGO registration certificates and bank account verified.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/causes/:id", "host": ["{{baseUrl}}"], "path": ["api", "causes", ":id"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Donations & Real-Time Impact",
+      "item": [
+        {
+          "name": "Make Donation (Triggers Socket & Firebase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignId\": \"PASTE_CAMPAIGN_ID_HERE\",\n  \"amount\": 3000,\n  \"donorName\": \"Priya Verma\",\n  \"donorEmail\": \"priya@example.com\",\n  \"paymentMethod\": \"UPI\",\n  \"panNumber\": \"ABCDE1234F\",\n  \"isRecurring\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/donations", "host": ["{{baseUrl}}"], "path": ["api", "donations"] }
+          }
+        },
+        {
+          "name": "List All Donations",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/donations", "host": ["{{baseUrl}}"], "path": ["api", "donations"] }
+          }
+        },
+        {
+          "name": "Get 80G Tax Exemption Receipt",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/donations/:id/receipt", "host": ["{{baseUrl}}"], "path": ["api", "donations", ":id", "receipt"] }
+          }
+        },
+        {
+          "name": "Get User Donations History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/donations/user/:userId", "host": ["{{baseUrl}}"], "path": ["api", "donations", "user", ":userId"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin Analytics",
+      "item": [
+        {
+          "name": "Admin Campaigns Overview",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/campaigns", "host": ["{{baseUrl}}"], "path": ["api", "admin", "campaigns"] }
+          }
+        },
+        {
+          "name": "Admin Financial & Donation Analytics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/donations", "host": ["{{baseUrl}}"], "path": ["api", "admin", "donations"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Notifications",
+      "item": [
+        {
+          "name": "Send Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"🎉 Campaign Milestone!\",\n  \"body\": \"Your supported campaign has crossed 80% of its target!\",\n  \"type\": \"campaign_update\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/notifications/send", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "send"] }
+          }
+        },
+        {
+          "name": "Get Notifications List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api", "notifications"] }
+          }
+        }
+      ]
+    }
+  ]
+}
