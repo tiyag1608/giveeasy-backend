@@ -1,6 +1,6 @@
 # 💝 GiveEasy - Backend Donation Platform
 
-> **Case Study 22: Backend Development - Donation Platform**  
+> **Scalable, Real-Time Fundraising & NGO Donation Platform**  
 > Built with **Node.js, Express.js, MongoDB (Mongoose), Socket.io, and Firebase Admin SDK**.
 
 [![Node.js Version](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
@@ -19,9 +19,9 @@
 - **Dual Authentication**: Secure JWT (JSON Web Tokens) with bcrypt password hashing + Firebase Auth ID token verification.
 - **Real-Time WebSockets**: Powered by **Socket.io** — when any donation occurs, all connected clients immediately receive real-time campaign progress bar updates without refreshing.
 - **Admin Verification Flow**: NGOs can submit causes; platform Administrators inspect and verify or reject causes before campaigns can be launched.
-- **Firebase Push Notifications**: Firebase Cloud Messaging (FCM) integration to dispatch instant donation receipts to donor devices (with simulated mock fallback for zero-setup local viva evaluation).
+- **Firebase Push Notifications**: Firebase Cloud Messaging (FCM) integration to dispatch instant donation receipts to donor devices (with simulated mock fallback for local offline testing).
 - **Section 80G Tax Exemption Receipts**: Generates authentic Indian Income Tax Section 80G tax certificates with unique receipt numbers and 50% deduction calculations.
-- **Interactive Live Dashboard**: Built-in testbench at `http://localhost:5050` with live Socket.io progress bars, role switcher, and donation modal for instant viva demonstrations!
+- **Interactive Live Dashboard**: Built-in testbench at `http://localhost:5050` with live Socket.io progress bars, role switcher, and donation modal for interactive testing.
 - **Interactive Swagger Documentation**: Live API documentation and interactive test runner at `/api-docs`.
 - **Postman Collection**: Export-ready `postman_collection.json` with preconfigured environments and sample payloads.
 
@@ -70,7 +70,6 @@ giveeasy-backend/
 ├── postman_collection.json          # Postman Collection
 ├── test_api.js                      # 18-step Automated Test Suite
 ├── README.md                        # Project Documentation
-├── VIVA_EXPLANATION_GUIDE.md        # Comprehensive Viva Q&A Guide
 ├── public/
 │   └── index.html                   # Live Testbench & Interactive UI
 └── src/
@@ -138,7 +137,7 @@ Default configuration:
 PORT=5050
 NODE_ENV=development
 MONGODB_URI=mongodb://127.0.0.1:27017/giveeasy
-JWT_SECRET=giveeasy_super_secret_jwt_key_2026_secure_key_for_viva
+JWT_SECRET=giveeasy_super_secret_jwt_key_2026_production_secret
 JWT_EXPIRE=7d
 CLIENT_URL=http://localhost:5050
 ```
@@ -171,7 +170,7 @@ npm test
 
 ---
 
-## 🔑 Demo Credentials for Viva
+## 🔑 Default Seed Credentials
 
 | Role | Email | Password | Permissions |
 |---|---|---|---|

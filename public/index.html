@@ -655,10 +655,10 @@
           </div>
         </div>
 
-        <!-- Quick API Endpoint Links for Viva Evaluation -->
+        <!-- Platform Feature Checklist -->
         <div class="card">
           <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #fff;">
-            🎯 Assignment Checklist
+            🎯 Platform Feature Highlights
           </h3>
           <ul style="list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
             <li style="display: flex; align-items: center; gap: 8px;">
@@ -719,7 +719,7 @@
     let currentUser = null;
     let socket = null;
 
-    // Credentials map for quick switching during viva
+    // Credentials map for quick role switching
     const credentials = {
       donor: { email: 'priya@example.com', password: 'donor123' },
       admin: { email: 'admin@giveeasy.org', password: 'admin123' },
@@ -902,7 +902,7 @@
           },
           body: JSON.stringify({
             status,
-            verificationNotes: 'Verified during live viva demonstration.'
+            verificationNotes: 'Verified and approved by Administrator.'
           })
         });
         const data = await res.json();

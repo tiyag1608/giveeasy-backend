@@ -1,5 +1,6 @@
 node_modules/
 .env
+VIVA_EXPLANATION_GUIDE.md
 .DS_Store
 *.log
 npm-debug.log*

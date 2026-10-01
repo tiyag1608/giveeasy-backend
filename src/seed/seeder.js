@@ -94,7 +94,7 @@ const seedData = async () => {
       ngoRegistrationNumber: 'REG/BLR/2023/PAWS44',
       contactEmail: 'contact@pawstails.org',
       proofUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=600&q=80',
-      status: 'pending', // Pending so admin can verify during viva demo!
+      status: 'pending', // Pending cause for admin verification testing
       verificationNotes: 'Awaiting submission of audited balance sheet for FY 2024-25.',
       submittedBy: ngoUser._id,
     });
@@ -217,7 +217,7 @@ const seedData = async () => {
     console.log('\n=============================================');
     console.log('🎉 Sample Seed Data Generated Successfully!');
     console.log('=============================================');
-    console.log('Test Accounts for Viva Presentation:');
+    console.log('Default Seeded Accounts:');
     console.log('  1. Super Admin:');
     console.log('     Email:    admin@giveeasy.org');
     console.log('     Password: admin123');

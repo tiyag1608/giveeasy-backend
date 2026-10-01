@@ -45,7 +45,7 @@ const sendPushNotification = async ({ token, title, body, data = {} }) => {
     }
   }
 
-  // Graceful Mock for local testing & Viva demonstration
+  // Graceful Mock for local testing & development
   const simulatedId = `mock_fcm_${Date.now()}_${Math.random().toString(36).substring(7)}`;
   console.log(`[Firebase Push Notification Simulated]`);
   console.log(`  To Token: ${token || 'All/Broadcast'}`);
@@ -68,7 +68,7 @@ const verifyFirebaseToken = async (idToken) => {
   if (firebaseInitialized) {
     return await admin.auth().verifyIdToken(idToken);
   }
-  // Mock validation for test / viva demonstration
+  // Mock validation for test environment
   if (idToken && idToken.startsWith('mock_fb_')) {
     return {
       uid: 'firebase_mock_uid_' + idToken.replace('mock_fb_', ''),
