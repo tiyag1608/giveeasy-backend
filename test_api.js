@@ -146,11 +146,14 @@ async function runTests() {
     console.log('\n📋 Test 10: Real-time Socket.io & Donation Integration');
     const socket = io(BASE_URL, { reconnection: false, timeout: 5000 });
 
-    let socketReceivedPromise = new Promise((resolve) => {
+    await new Promise((resolve) => {
       socket.on('connect', () => {
         socket.emit('join_campaign', createdCampId);
+        resolve();
       });
+    });
 
+    const socketReceivedPromise = new Promise((resolve) => {
       socket.on('campaign:progress_updated', (data) => {
         if (data.campaignId === createdCampId) {
           resolve(data);
