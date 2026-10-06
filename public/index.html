@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Socket.io Client -->
-  <script src="/socket.io/socket.io.js"></script>
+  <!-- Socket.io Client (defer so page works even if WS unavailable on Render free tier) -->
+  <script src="/socket.io/socket.io.js" defer onerror="window._socketLoadFailed=true"></script>
 
   <style>
     :root {
@@ -288,6 +288,64 @@
     .token-chip code {
       color: var(--primary);
       font-weight: 600;
+    }
+
+    /* Active Persona Info & Action Panel */
+    .persona-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      margin-top: -12px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .persona-user-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .persona-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary-border);
+      object-fit: cover;
+    }
+
+    .persona-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .persona-role-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .persona-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     /* Overview Highlights Grid */
@@ -1056,6 +1114,25 @@
       </div>
     </div>
 
+    <!-- Active Persona Info & Action Panel -->
+    <div class="persona-card" id="persona-card">
+      <div class="persona-user-meta">
+        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" class="persona-avatar" id="persona-avatar" alt="Avatar">
+        <div>
+          <div class="persona-name">
+            <span id="persona-name">Priya Verma</span>
+            <span class="persona-role-badge" id="persona-role">DONOR</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);" id="persona-desc">
+            priya@example.com &bull; PAN: ABCDE1234F
+          </div>
+        </div>
+      </div>
+      <div class="persona-actions" id="persona-actions">
+        <!-- Injected dynamically based on role -->
+      </div>
+    </div>
+
     <!-- Overview Stats Metric Ribbon -->
     <div class="overview-grid">
       <div class="metric-card">
@@ -1236,6 +1313,106 @@
     </div>
   </div>
 
+  <!-- Admin Platform Analytics Modal -->
+  <div class="modal-backdrop" id="analytics-modal">
+    <div class="modal-container">
+      <button class="modal-close-btn" onclick="document.getElementById('analytics-modal').classList.remove('open')">&times;</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+        <span style="font-size: 24px;">📊</span>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+            Platform Financial Analytics & Overview
+          </h2>
+          <p style="font-size: 12.5px; color: var(--text-muted);">
+            Administrator live statistics fetched via GET /api/admin/overview
+          </p>
+        </div>
+      </div>
+      <div id="analytics-content">
+        <div style="text-align: center; padding: 30px; color: var(--text-muted);">Loading live metrics...</div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-outline" onclick="document.getElementById('analytics-modal').classList.remove('open')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Donations History Modal -->
+  <div class="modal-backdrop" id="user-donations-modal">
+    <div class="modal-container">
+      <button class="modal-close-btn" onclick="document.getElementById('user-donations-modal').classList.remove('open')">&times;</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+        <span style="font-size: 24px;">📜</span>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+            My Donation History
+          </h2>
+          <p style="font-size: 12.5px; color: var(--text-muted);">
+            Personal contribution records fetched via GET /api/donations/user/:id
+          </p>
+        </div>
+      </div>
+      <div id="user-donations-content" style="max-height: 400px; overflow-y: auto; margin-top: 14px;">
+        <div style="text-align: center; padding: 30px; color: var(--text-muted);">Loading donation history...</div>
+      </div>
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-outline" onclick="document.getElementById('user-donations-modal').classList.remove('open')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit NGO Cause Modal -->
+  <div class="modal-backdrop" id="submit-cause-modal">
+    <div class="modal-container" style="max-width: 520px;">
+      <button class="modal-close-btn" onclick="document.getElementById('submit-cause-modal').classList.remove('open')">&times;</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+        <span style="font-size: 24px;">📝</span>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+            Submit Cause for Admin Verification
+          </h2>
+          <p style="font-size: 12.5px; color: var(--text-muted);">
+            NGOs submit causes in 'pending' status. Admin verifies them before fundraising.
+          </p>
+        </div>
+      </div>
+      <form onsubmit="handleCauseSubmit(event)" style="margin-top: 14px;">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">Cause Title</label>
+          <input type="text" id="cause-input-title" required class="amount-input" style="width: 100%; padding: 8px 10px;" placeholder="e.g. Solar Microgrid for Forest Communities">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">Cause Description</label>
+          <textarea id="cause-input-desc" required class="amount-input" style="width: 100%; height: 70px; padding: 8px 10px;" placeholder="Describe what the NGO aims to achieve..."></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">Category</label>
+            <select id="cause-input-category" class="amount-input" style="width: 100%; padding: 8px 10px;">
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
+              <option value="Environment" selected>Environment</option>
+              <option value="Disaster Relief">Disaster Relief</option>
+              <option value="Child Welfare">Child Welfare</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">NGO Registration No.</label>
+            <input type="text" id="cause-input-reg" required class="amount-input" style="width: 100%; padding: 8px 10px;" value="12A/80G/DEL/2023/CARE88">
+          </div>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">Contact Email</label>
+          <input type="email" id="cause-input-email" required class="amount-input" style="width: 100%; padding: 8px 10px;" value="ngo@careindia.org">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('submit-cause-modal').classList.remove('open')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Cause</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Client-side Logic -->
   <script>
     let currentRole = 'donor';
@@ -1249,50 +1426,130 @@
       ngo: { email: 'ngo@careindia.org', password: 'ngo123' }
     };
 
-    // Socket.io Setup
+    // Socket.io Setup — wrapped in try/catch so Render free tier WS issues never block the UI
     function setupSocket() {
-      socket = io();
+      try {
+        if (typeof io === 'undefined') {
+          console.warn('⚠️ socket.io client not loaded — real-time feed disabled, REST APIs still work.');
+          const badge = document.getElementById('socket-status');
+          if (badge) {
+            badge.innerText = 'REST Mode (No WS)';
+            badge.style.color = '#d97706';
+          }
+          return;
+        }
 
-      socket.on('connect', () => {
+        socket = io({
+          transports: ['websocket', 'polling'], // Try WebSocket first, fall back to polling
+          reconnectionAttempts: 5,
+          reconnectionDelay: 2000,
+          timeout: 10000,
+        });
+
+        socket.on('connect', () => {
+          const badge = document.getElementById('socket-status');
+          if (badge) {
+            badge.innerText = 'WebSocket Active';
+            badge.style.color = '#059669';
+          }
+        });
+
+        socket.on('connect_error', (err) => {
+          console.warn('Socket.io connect error (non-fatal):', err.message);
+          const badge = document.getElementById('socket-status');
+          if (badge) {
+            badge.innerText = 'Polling Mode';
+            badge.style.color = '#d97706';
+          }
+        });
+
+        socket.on('disconnect', () => {
+          const badge = document.getElementById('socket-status');
+          if (badge) {
+            badge.innerText = 'Reconnecting...';
+            badge.style.color = '#e11d48';
+          }
+        });
+
+        // Real-time Campaign Progress Event
+        socket.on('campaign:progress_updated', (data) => {
+          addFeedItem(
+            '📈 Progress Updated',
+            `"${data.title}" received ₹${data.latestDonation ? Number(data.latestDonation.amount).toLocaleString('en-IN') : ''}. Total: ₹${Number(data.raisedAmount).toLocaleString('en-IN')} (${data.percentageRaised}%)`
+          );
+          showToast(
+            '🎉 Real-time Contribution!',
+            `₹${data.latestDonation ? Number(data.latestDonation.amount).toLocaleString('en-IN') : ''} was just donated to "${data.title}"`
+          );
+          updateCampaignCard(data);
+        });
+
+        // Real-time Cause Verification Event
+        socket.on('cause:status_updated', (data) => {
+          addFeedItem('🏛️ Cause Status Changed', `Cause "${data.title}" was updated to ${data.status.toUpperCase()} by Admin.`);
+          showToast('🏛️ Cause Status Updated', `Cause "${data.title}" is now ${data.status}`);
+          loadCauses();
+        });
+
+        // Global notification broadcast
+        socket.on('notification:global', (notif) => {
+          showToast(notif.title, notif.body);
+        });
+
+      } catch (err) {
+        console.warn('Socket.io setup failed (non-fatal):', err.message);
         const badge = document.getElementById('socket-status');
         if (badge) {
-          badge.innerText = 'WebSocket Active';
-          badge.style.color = '#059669';
+          badge.innerText = 'REST Mode';
+          badge.style.color = '#d97706';
         }
-      });
+      }
+    }
 
-      socket.on('disconnect', () => {
-        const badge = document.getElementById('socket-status');
-        if (badge) {
-          badge.innerText = 'Disconnected';
-          badge.style.color = '#e11d48';
+    // Update Persona UI Card
+    function updatePersonaUI(user) {
+      if (!user) return;
+      const nameEl = document.getElementById('persona-name');
+      const roleEl = document.getElementById('persona-role');
+      const descEl = document.getElementById('persona-desc');
+      const avatarEl = document.getElementById('persona-avatar');
+      const actionsEl = document.getElementById('persona-actions');
+
+      if (nameEl) nameEl.innerText = user.name;
+      if (roleEl) roleEl.innerText = user.role.toUpperCase();
+      if (descEl) descEl.innerText = `${user.email} • PAN: ${user.panNumber || 'N/A'}`;
+      if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+
+      if (actionsEl) {
+        if (user.role === 'admin') {
+          actionsEl.innerHTML = `
+            <button class="btn btn-primary btn-sm" onclick="viewAdminAnalytics()">
+              📊 Platform Analytics
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="createSamplePendingCause()">
+              ⚡ + Test Pending Cause
+            </button>
+          `;
+        } else if (user.role === 'ngo_admin') {
+          actionsEl.innerHTML = `
+            <button class="btn btn-primary btn-sm" onclick="openSubmitCauseModal()">
+              📝 + Submit New Cause
+            </button>
+            <span style="font-size: 12px; color: var(--text-muted);">
+              NGO Portal: Submit causes for verification
+            </span>
+          `;
+        } else {
+          actionsEl.innerHTML = `
+            <button class="btn btn-outline btn-sm" onclick="viewMyDonations()">
+              📜 View My Donations
+            </button>
+            <span style="font-size: 12px; color: var(--text-muted);">
+              Donor Portal: Browse & contribute to causes
+            </span>
+          `;
         }
-      });
-
-      // Real-time Campaign Progress Event
-      socket.on('campaign:progress_updated', (data) => {
-        addFeedItem(
-          '📈 Progress Updated',
-          `"${data.title}" received ₹${data.latestDonation ? Number(data.latestDonation.amount).toLocaleString('en-IN') : ''}. Total: ₹${Number(data.raisedAmount).toLocaleString('en-IN')} (${data.percentageRaised}%)`
-        );
-        showToast(
-          '🎉 Real-time Contribution!',
-          `₹${data.latestDonation ? Number(data.latestDonation.amount).toLocaleString('en-IN') : ''} was just donated to "${data.title}"`
-        );
-        updateCampaignCard(data);
-      });
-
-      // Real-time Cause Verification Event
-      socket.on('cause:status_updated', (data) => {
-        addFeedItem('🏛️ Cause Status Changed', `Cause "${data.title}" was updated to ${data.status.toUpperCase()} by Admin.`);
-        showToast('🏛️ Cause Status Updated', `Cause "${data.title}" is now ${data.status}`);
-        loadCauses();
-      });
-
-      // Global notification broadcast
-      socket.on('notification:global', (notif) => {
-        showToast(notif.title, notif.body);
-      });
+      }
     }
 
     // Role Switcher
@@ -1317,10 +1574,160 @@
           if (preview) {
             preview.innerText = `${currentToken.substring(0, 18)}... (${data.user.role.toUpperCase()})`;
           }
+          updatePersonaUI(data.user);
+          showToast('Persona Activated! 🔑', `Logged in as ${data.user.name} (${data.user.role.toUpperCase()})`);
           loadCauses();
         }
       } catch (err) {
         console.error('Role auth failed:', err);
+      }
+    }
+
+    // Admin: Platform Analytics Modal
+    async function viewAdminAnalytics() {
+      try {
+        const res = await fetch('/api/admin/overview', {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const json = await res.json();
+        if (json.success) {
+          const d = json.data;
+          const container = document.getElementById('analytics-content');
+          container.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+              <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 10px;">
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">TOTAL PLATFORM USERS</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--primary);">${d.totalUsers}</div>
+              </div>
+              <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 10px;">
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">ACTIVE CAMPAIGNS</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--primary);">${d.totalCampaigns}</div>
+              </div>
+              <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 10px;">
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">TOTAL IMPACT RAISED</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--emerald);">₹${Number(d.totalRaised).toLocaleString('en-IN')}</div>
+              </div>
+              <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 10px;">
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">PLATFORM FEE (2%)</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--amber);">₹${Number(d.platformFeeCollected).toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+            <div style="margin-top: 16px; font-size: 13px; color: var(--text-muted); background: #f8fafc; border: 1px solid var(--border-subtle); padding: 10px 14px; border-radius: 8px;">
+              📊 Verified Transactions: <strong>${d.totalTransactions}</strong> &bull; Pending Verification: <strong>${d.pendingCausesCount} causes</strong>
+            </div>
+          `;
+          document.getElementById('analytics-modal').classList.add('open');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Admin: Create Sample Pending Cause for Testing
+    async function createSamplePendingCause() {
+      try {
+        const res = await fetch('/api/causes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            title: `Tribal Solar Micro-Grid Project #${Math.floor(100 + Math.random() * 900)}`,
+            description: "Deploying solar micro-grids and battery packs for 50 remote tribal forest dwellings.",
+            category: "Environment",
+            ngoName: "Surya Shakti Foundation",
+            ngoRegistrationNumber: "12A/80G/MH/2023/SURYA99",
+            contactEmail: "info@suryashakti.org"
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Pending Cause Created! 🏛️', 'New cause submitted in pending status. Click "Approve Cause" below to verify!');
+          loadCauses();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Donor: View My Donations
+    async function viewMyDonations() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`/api/donations/user/${currentUser.id}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const json = await res.json();
+        const container = document.getElementById('user-donations-content');
+        if (json.success) {
+          if (!json.data || json.data.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 30px; color: var(--text-muted);">No donations recorded yet. Make a contribution above!</div>';
+          } else {
+            container.innerHTML = json.data.map(d => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface);">
+                <div>
+                  <div style="font-weight: 700; font-size: 13.5px; color: var(--text-main);">${d.campaignId?.title || 'Community Campaign'}</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);">
+                    Receipt: <strong>${d.receiptNumber}</strong> &bull; ${new Date(d.createdAt).toLocaleDateString()} via ${d.paymentMethod}
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 15px; font-weight: 800; color: var(--primary);">₹${Number(d.amount).toLocaleString('en-IN')}</div>
+                  <button class="btn btn-outline btn-sm" style="margin-top: 4px; padding: 3px 8px; font-size: 11px;" onclick="viewReceipt('${d._id}')">
+                    📜 View 80G Receipt
+                  </button>
+                </div>
+              </div>
+            `).join('');
+          }
+          document.getElementById('user-donations-modal').classList.add('open');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // NGO: Open Submit Cause Modal
+    function openSubmitCauseModal() {
+      document.getElementById('submit-cause-modal').classList.add('open');
+    }
+
+    // NGO: Handle Cause Form Submit
+    async function handleCauseSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('cause-input-title').value;
+      const description = document.getElementById('cause-input-desc').value;
+      const category = document.getElementById('cause-input-category').value;
+      const ngoRegistrationNumber = document.getElementById('cause-input-reg').value;
+      const contactEmail = document.getElementById('cause-input-email').value;
+
+      try {
+        const res = await fetch('/api/causes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {})
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            category,
+            ngoName: currentUser ? currentUser.name : 'Care India Foundation',
+            ngoRegistrationNumber,
+            contactEmail
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('submit-cause-modal').classList.remove('open');
+          showToast('Cause Submitted! 🎉', 'Cause submitted in pending status. Switch to Admin persona to verify!');
+          loadCauses();
+        } else {
+          alert('Submission error: ' + data.message);
+        }
+      } catch (err) {
+        console.error(err);
       }
     }
 
@@ -1658,9 +2065,13 @@
       }, 4000);
     }
 
-    // Boot on load
-    window.addEventListener('DOMContentLoaded', () => {
-      setupSocket();
+    // Boot on load — use window.onload (after all scripts including deferred socket.io are loaded)
+    window.addEventListener('load', () => {
+      // Small delay to ensure deferred socket.io script has executed
+      setTimeout(() => {
+        setupSocket();
+      }, 300);
+      // Role switch and data load run immediately — never blocked by socket
       switchRole('donor');
       loadCampaigns();
     });
