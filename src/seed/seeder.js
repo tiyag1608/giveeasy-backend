@@ -228,12 +228,17 @@ const seedData = async () => {
     console.log('     Email:    priya@example.com');
     console.log('     Password: donor123');
     console.log('=============================================\n');
-
-    process.exit(0);
+    return { success: true };
   } catch (error) {
     console.error('❌ Seeder Error:', error);
-    process.exit(1);
+    throw error;
   }
 };
 
-seedData();
+if (require.main === module) {
+  seedData()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}
+
+module.exports = seedData;

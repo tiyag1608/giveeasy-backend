@@ -7,8 +7,22 @@ const { initSocket } = require('./src/sockets/socketHandler');
 
 const PORT = process.env.PORT || 5050;
 
-// Connect to MongoDB
-connectDB();
+const Campaign = require('./src/models/Campaign');
+const seedData = require('./src/seed/seeder');
+
+// Connect to MongoDB & auto-seed if empty
+connectDB().then(async () => {
+  try {
+    const count = await Campaign.countDocuments();
+    if (count === 0) {
+      console.log('🌱 Database is empty — auto-seeding sample campaigns, causes, and users...');
+      await seedData();
+      console.log('✅ Auto-seed completed successfully!');
+    }
+  } catch (err) {
+    console.warn('⚠️ Auto-seed check notice:', err.message);
+  }
+});
 
 // Create HTTP server
 const server = http.createServer(app);

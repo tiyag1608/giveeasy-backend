@@ -47,6 +47,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Quick Database Seed API
+app.get('/api/seed', async (req, res) => {
+  try {
+    const seedData = require('./seed/seeder');
+    await seedData();
+    res.status(200).json({
+      success: true,
+      message: 'Database seeded successfully with sample campaigns, causes, users, and donations!',
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
