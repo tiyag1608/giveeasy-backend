@@ -1,0 +1,41 @@
+{
+  "clientName": "Thunder Client",
+  "environmentName": "GiveEasy Local",
+  "environmentId": "giveeasy-env-local",
+  "dateExported": "2026-10-06T06:05:00.000Z",
+  "version": "1.2",
+  "variables": [
+    {
+      "name": "baseUrl",
+      "value": "http://localhost:5050"
+    },
+    {
+      "name": "token",
+      "value": ""
+    },
+    {
+      "name": "adminToken",
+      "value": ""
+    },
+    {
+      "name": "donorToken",
+      "value": ""
+    },
+    {
+      "name": "campaignId",
+      "value": ""
+    },
+    {
+      "name": "causeId",
+      "value": ""
+    },
+    {
+      "name": "donationId",
+      "value": ""
+    },
+    {
+      "name": "userId",
+      "value": ""
+    }
+  ]
+}

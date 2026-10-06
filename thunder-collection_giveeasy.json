@@ -1,0 +1,332 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "GiveEasy Donation Platform API",
+  "collectionId": "giveeasy-thunder-col-v1",
+  "dateExported": "2026-10-06T06:05:00.000Z",
+  "version": "1.2",
+  "folders": [
+    {
+      "_id": "folder_auth",
+      "name": "1. Authentication",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 10000
+    },
+    {
+      "_id": "folder_campaigns",
+      "name": "2. Campaigns",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 20000
+    },
+    {
+      "_id": "folder_causes",
+      "name": "3. Causes & Admin Verification",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 30000
+    },
+    {
+      "_id": "folder_donations",
+      "name": "4. Donations & 80G Tax Receipts",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 40000
+    },
+    {
+      "_id": "folder_admin",
+      "name": "5. Admin Analytics",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 50000
+    },
+    {
+      "_id": "folder_notifications",
+      "name": "6. Notifications (Firebase)",
+      "containerId": "",
+      "created": "2026-10-06T06:05:00.000Z",
+      "sortNum": 60000
+    }
+  ],
+  "requests": [
+    {
+      "_id": "tc_req_health",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "",
+      "name": "0. Health Check",
+      "url": "{{baseUrl}}/api/health",
+      "method": "GET",
+      "sortNum": 5000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "tc_req_login_admin",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_auth",
+      "name": "1.1 Login as Admin",
+      "url": "{{baseUrl}}/api/auth/login",
+      "method": "POST",
+      "sortNum": 11000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"admin@giveeasy.org\",\n  \"password\": \"admin123\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_login_donor",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_auth",
+      "name": "1.2 Login as Donor",
+      "url": "{{baseUrl}}/api/auth/login",
+      "method": "POST",
+      "sortNum": 12000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"priya@example.com\",\n  \"password\": \"donor123\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_register",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_auth",
+      "name": "1.3 Register New User",
+      "url": "{{baseUrl}}/api/auth/register",
+      "method": "POST",
+      "sortNum": 13000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Amit Verma\",\n  \"email\": \"amit.verma@example.com\",\n  \"password\": \"amit123456\",\n  \"role\": \"donor\",\n  \"panNumber\": \"ABCDE1234F\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_auth_me",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_auth",
+      "name": "1.4 Get Profile (Me)",
+      "url": "{{baseUrl}}/api/auth/me",
+      "method": "GET",
+      "sortNum": 14000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    },
+    {
+      "_id": "tc_req_get_campaigns",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_campaigns",
+      "name": "2.1 Browse All Campaigns",
+      "url": "{{baseUrl}}/api/campaigns?sort=popular",
+      "method": "GET",
+      "sortNum": 21000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "tc_req_get_campaign_id",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_campaigns",
+      "name": "2.2 Get Campaign Details by ID",
+      "url": "{{baseUrl}}/api/campaigns/{{campaignId}}",
+      "method": "GET",
+      "sortNum": 22000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "tc_req_create_campaign",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_campaigns",
+      "name": "2.3 Create Campaign (Admin/NGO)",
+      "url": "{{baseUrl}}/api/campaigns",
+      "method": "POST",
+      "sortNum": 23000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{adminToken}}" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Winter Thermal Blankets for 1000 Homeless Families\",\n  \"description\": \"Distribute heavy winter survival kits and blankets across Delhi shelter homes.\",\n  \"causeId\": \"{{causeId}}\",\n  \"targetAmount\": 250000,\n  \"category\": \"Disaster Relief\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_get_causes",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_causes",
+      "name": "3.1 Browse Causes (Public / Admin)",
+      "url": "{{baseUrl}}/api/causes",
+      "method": "GET",
+      "sortNum": 31000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    },
+    {
+      "_id": "tc_req_submit_cause",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_causes",
+      "name": "3.2 Submit Cause (NGO / User)",
+      "url": "{{baseUrl}}/api/causes",
+      "method": "POST",
+      "sortNum": 32000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{donorToken}}" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"Solar Microgrid for Remote Tribal Hamlets\",\n  \"description\": \"Installation of solar lamps and battery setups for 50 off-grid houses.\",\n  \"category\": \"Environment\",\n  \"ngoName\": \"Surya Shakti Foundation\",\n  \"ngoRegistrationNumber\": \"12A/80G/MH/2023/SURYA99\",\n  \"contactEmail\": \"info@suryashakti.org\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_verify_cause",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_causes",
+      "name": "3.3 Admin Verify Cause",
+      "url": "{{baseUrl}}/api/causes/{{causeId}}",
+      "method": "PUT",
+      "sortNum": 33000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{adminToken}}" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"status\": \"verified\",\n  \"verificationNotes\": \"Physical registration certificates, 12A/80G status verified by Admin.\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_donate",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_donations",
+      "name": "4.1 Make Donation (Triggers Socket.io & Firebase)",
+      "url": "{{baseUrl}}/api/donations",
+      "method": "POST",
+      "sortNum": 41000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{token}}" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"campaignId\": \"{{campaignId}}\",\n  \"amount\": 2500,\n  \"donorName\": \"Priya Verma\",\n  \"donorEmail\": \"priya@example.com\",\n  \"paymentMethod\": \"UPI\",\n  \"panNumber\": \"ABCDE1234F\",\n  \"isRecurring\": false\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_get_donations",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_donations",
+      "name": "4.2 List All Donations",
+      "url": "{{baseUrl}}/api/donations",
+      "method": "GET",
+      "sortNum": 42000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "tc_req_tax_receipt",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_donations",
+      "name": "4.3 Get 80G Tax Exemption Receipt",
+      "url": "{{baseUrl}}/api/donations/{{donationId}}/receipt",
+      "method": "GET",
+      "sortNum": 43000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "tc_req_user_donations",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_donations",
+      "name": "4.4 Get User Donation History",
+      "url": "{{baseUrl}}/api/donations/user/{{userId}}",
+      "method": "GET",
+      "sortNum": 44000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    },
+    {
+      "_id": "tc_req_admin_campaigns",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_admin",
+      "name": "5.1 Admin Campaigns Overview",
+      "url": "{{baseUrl}}/api/admin/campaigns",
+      "method": "GET",
+      "sortNum": 51000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{adminToken}}" }
+      ]
+    },
+    {
+      "_id": "tc_req_admin_donations",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_admin",
+      "name": "5.2 Admin Financial Analytics",
+      "url": "{{baseUrl}}/api/admin/donations",
+      "method": "GET",
+      "sortNum": 52000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{adminToken}}" }
+      ]
+    },
+    {
+      "_id": "tc_req_send_notification",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_notifications",
+      "name": "6.1 Dispatch Push Notification",
+      "url": "{{baseUrl}}/api/notifications/send",
+      "method": "POST",
+      "sortNum": 61000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"title\": \"🎉 Campaign Milestone Reached!\",\n  \"body\": \"Clean Drinking Water Campaign has reached 80% of its fundraising goal!\",\n  \"type\": \"campaign_update\"\n}",
+        "form": []
+      }
+    },
+    {
+      "_id": "tc_req_get_notifications",
+      "colId": "giveeasy-thunder-col-v1",
+      "containerId": "folder_notifications",
+      "name": "6.2 Get Notifications List",
+      "url": "{{baseUrl}}/api/notifications",
+      "method": "GET",
+      "sortNum": 62000,
+      "created": "2026-10-06T06:05:00.000Z",
+      "headers": []
+    }
+  ]
+}
