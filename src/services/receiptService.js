@@ -34,6 +34,7 @@ const generateTaxReceipt = (donation, campaign, cause, user) => {
     donorDetails: {
       donorName: donation.donorName,
       donorEmail: donation.donorEmail,
+      donorPhone: donation.donorPhone || '',
       panNumber: pan,
       donorId: donation.donorId || null,
     },

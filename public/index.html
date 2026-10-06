@@ -2082,6 +2082,7 @@
         document.getElementById('donor-name-input').value = currentUser.name || '';
         document.getElementById('donor-email-input').value = currentUser.email || '';
         document.getElementById('donor-pan-input').value = currentUser.panNumber || '';
+        document.getElementById('donor-phone-input').value = currentUser.phone || '';
       }
 
       // Reset error & payment method
@@ -2154,7 +2155,16 @@
       submitBtn.disabled = true;
       submitBtn.innerText = '⏳ Processing...';
 
-      const payload = { campaignId, amount, donorName, donorEmail, paymentMethod, panNumber };
+      const payload = {
+        campaignId,
+        amount,
+        donorName,
+        donorEmail,
+        donorPhone: phone,
+        phone,
+        paymentMethod,
+        panNumber
+      };
 
       try {
         const res = await fetch('/api/donations', {
@@ -2231,7 +2241,11 @@
                   <span class="cert-field-val">${r.donorDetails.donorName}</span>
                 </div>
                 <div class="cert-field">
-                  <span class="cert-field-label">Donor PAN</span>
+                  <span class="cert-field-label">Contact & Phone</span>
+                  <span class="cert-field-val" style="font-size: 11.5px;">${r.donorDetails.donorPhone ? r.donorDetails.donorPhone + ' • ' : ''}${r.donorDetails.donorEmail}</span>
+                </div>
+                <div class="cert-field">
+                  <span class="cert-field-label">Donor PAN (80G)</span>
                   <span class="cert-field-val">${r.donorDetails.panNumber || 'ABCDE1234F'}</span>
                 </div>
                 <div class="cert-field">

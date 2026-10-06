@@ -18,6 +18,17 @@ const donationSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    donorPhone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    panNumber: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: '',
+    },
     campaignId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Campaign',

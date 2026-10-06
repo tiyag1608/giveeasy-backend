@@ -34,6 +34,8 @@ const createDonation = async (req, res, next) => {
       amount,
       donorName,
       donorEmail,
+      donorPhone,
+      phone,
       paymentMethod = 'UPI',
       isRecurring = false,
       recurringFrequency = 'none',
@@ -60,16 +62,35 @@ const createDonation = async (req, res, next) => {
     const donorUser = req.user || null;
     const finalDonorName = donorName || (donorUser ? donorUser.name : 'Anonymous Donor');
     const finalDonorEmail = donorEmail || (donorUser ? donorUser.email : 'supporter@giveeasy.org');
-    const finalPan = panNumber || (donorUser ? donorUser.panNumber : '');
+    const finalPhone = donorPhone || phone || (donorUser ? donorUser.phone : '') || '';
+    const finalPan = panNumber || (donorUser ? donorUser.panNumber : '') || '';
+
+    // If user is authenticated and provided phone or PAN, keep their user profile synced
+    if (donorUser) {
+      let profileUpdated = false;
+      if (finalPhone && !donorUser.phone) {
+        donorUser.phone = finalPhone;
+        profileUpdated = true;
+      }
+      if (finalPan && !donorUser.panNumber) {
+        donorUser.panNumber = finalPan;
+        profileUpdated = true;
+      }
+      if (profileUpdated) {
+        await donorUser.save({ validateBeforeSave: false });
+      }
+    }
 
     const transactionId = generateTransactionId();
     const receiptNumber = generateReceiptNumber();
 
-    // 2. Create Donation Record
+    // 2. Create Donation Record in MongoDB
     const donation = await Donation.create({
       donorId: donorUser ? donorUser._id : null,
       donorName: finalDonorName,
       donorEmail: finalDonorEmail,
+      donorPhone: finalPhone,
+      panNumber: finalPan,
       campaignId: campaign._id,
       causeId: campaign.causeId?._id || null,
       amount: Number(amount),
