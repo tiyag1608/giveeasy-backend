@@ -24,8 +24,8 @@ const io = new Server(server, {
 // Initialize Socket.io events
 initSocket(io);
 
-// Start server
-server.listen(PORT, () => {
+// Start server (explicitly binding 0.0.0.0 for Docker/cloud container routing)
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(`🚀 GiveEasy Donation Platform Backend Running`);
   console.log(`📡 Server Port:        http://localhost:${PORT}`);
