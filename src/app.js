@@ -61,6 +61,23 @@ app.get('/api/seed', async (req, res) => {
   }
 });
 
+// Database Connection Diagnostics
+app.get('/api/db-status', (req, res) => {
+  const mongoose = require('mongoose');
+  const state = mongoose.connection.readyState;
+  res.status(200).json({
+    readyState: state,
+    stateDescription: ['disconnected', 'connected', 'connecting', 'disconnecting'][state] || 'unknown',
+    host: mongoose.connection.host || null,
+    dbName: mongoose.connection.name || null,
+    uriConfigured: !!process.env.MONGODB_URI,
+    uriMasked: process.env.MONGODB_URI
+      ? process.env.MONGODB_URI.replace(/:([^:@]+)@/, ':****@')
+      : 'NOT_SET',
+    lastError: global.lastMongoError || null,
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
