@@ -1051,6 +1051,30 @@
       text-align: justify;
     }
 
+    /* Payment Method Cards */
+    .pay-method-card {
+      border: 1.5px solid var(--border-medium);
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .pay-method-card:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+    .pay-method-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #2563eb;
+      box-shadow: 0 0 0 3px #bfdbfe;
+    }
+
     /* Empty state */
     .empty-state {
       text-align: center;
@@ -1287,6 +1311,139 @@
 
   <!-- Floating Toast Notifications Container -->
   <div class="toast-tray" id="toast-container"></div>
+
+  <!-- Donation Details Form Modal -->
+  <div class="modal-backdrop" id="donate-details-modal">
+    <div class="modal-container" style="max-width: 500px;">
+      <button class="modal-close-btn" onclick="document.getElementById('donate-details-modal').classList.remove('open')">&times;</button>
+
+      <!-- Modal Header -->
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">💝</div>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--text-main);">Complete Your Donation</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">Please fill your details to proceed</p>
+        </div>
+      </div>
+
+      <!-- Campaign & Amount Summary Strip -->
+      <div id="donate-summary-strip" style="background: linear-gradient(135deg, #eff6ff, #eef2ff); border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px;">Campaign</div>
+          <div id="donate-campaign-name" style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-top: 2px;">—</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 11px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.5px;">Amount</div>
+          <div id="donate-amount-display" style="font-size: 22px; font-weight: 800; color: #059669; font-family: var(--font-mono);">₹0</div>
+        </div>
+      </div>
+
+      <!-- Donor Details Form -->
+      <form id="donate-details-form" onsubmit="submitDonation(event)" novalidate>
+        <input type="hidden" id="donate-campaign-id">
+        <input type="hidden" id="donate-amount-hidden">
+
+        <!-- Row 1: Name + Email -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 5px;">Full Name <span style="color: #e11d48;">*</span></label>
+            <input type="text" id="donor-name-input" required
+              style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-medium); border-radius: 8px; font-size: 13px; font-family: var(--font-sans); outline: none; transition: border-color 0.2s;"
+              placeholder="e.g. Priya Verma"
+              onfocus="this.style.borderColor='#2563eb'"
+              onblur="this.style.borderColor='var(--border-medium)'">
+          </div>
+          <div>
+            <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 5px;">Email Address <span style="color: #e11d48;">*</span></label>
+            <input type="email" id="donor-email-input" required
+              style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-medium); border-radius: 8px; font-size: 13px; font-family: var(--font-sans); outline: none; transition: border-color 0.2s;"
+              placeholder="your@email.com"
+              onfocus="this.style.borderColor='#2563eb'"
+              onblur="this.style.borderColor='var(--border-medium)'">
+          </div>
+        </div>
+
+        <!-- Row 2: PAN + Phone -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 5px;">
+              PAN Number <span style="color: #e11d48;">*</span>
+              <span style="font-weight: 400; color: var(--text-muted);">(for 80G receipt)</span>
+            </label>
+            <input type="text" id="donor-pan-input" required maxlength="10"
+              style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-medium); border-radius: 8px; font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; outline: none; transition: border-color 0.2s;"
+              placeholder="ABCDE1234F"
+              oninput="this.value=this.value.toUpperCase()"
+              onfocus="this.style.borderColor='#2563eb'"
+              onblur="this.style.borderColor='var(--border-medium)'">
+          </div>
+          <div>
+            <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 5px;">Phone Number <span style="color: #e11d48;">*</span></label>
+            <input type="tel" id="donor-phone-input" required maxlength="10"
+              style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-medium); border-radius: 8px; font-size: 13px; font-family: var(--font-sans); outline: none; transition: border-color 0.2s;"
+              placeholder="10-digit mobile number"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+              onfocus="this.style.borderColor='#2563eb'"
+              onblur="this.style.borderColor='var(--border-medium)'">
+          </div>
+        </div>
+
+        <!-- Row 3: Payment Method -->
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 11.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 8px;">Payment Method <span style="color: #e11d48;">*</span></label>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;" id="payment-method-group">
+            <label class="pay-method-option" onclick="selectPayMethod(this, 'UPI')">
+              <input type="radio" name="payMethod" value="UPI" style="display:none;">
+              <div class="pay-method-card active" id="pay-UPI">
+                <div style="font-size: 18px;">📱</div>
+                <div style="font-size: 11px; font-weight: 700;">UPI</div>
+              </div>
+            </label>
+            <label class="pay-method-option" onclick="selectPayMethod(this, 'CreditCard')">
+              <input type="radio" name="payMethod" value="CreditCard" style="display:none;">
+              <div class="pay-method-card" id="pay-CreditCard">
+                <div style="font-size: 18px;">💳</div>
+                <div style="font-size: 11px; font-weight: 700;">Credit Card</div>
+              </div>
+            </label>
+            <label class="pay-method-option" onclick="selectPayMethod(this, 'NetBanking')">
+              <input type="radio" name="payMethod" value="NetBanking" style="display:none;">
+              <div class="pay-method-card" id="pay-NetBanking">
+                <div style="font-size: 18px;">🏦</div>
+                <div style="font-size: 11px; font-weight: 700;">Net Banking</div>
+              </div>
+            </label>
+            <label class="pay-method-option" onclick="selectPayMethod(this, 'DebitCard')">
+              <input type="radio" name="payMethod" value="DebitCard" style="display:none;">
+              <div class="pay-method-card" id="pay-DebitCard">
+                <div style="font-size: 18px;">🪙</div>
+                <div style="font-size: 11px; font-weight: 700;">Debit Card</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Error message area -->
+        <div id="donate-form-error" style="display:none; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 12.5px; font-weight: 600; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;"></div>
+
+        <!-- 80G Notice -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 9px 12px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;">
+          <span style="font-size: 15px; flex-shrink: 0;">✅</span>
+          <p style="font-size: 11.5px; color: #15803d; line-height: 1.5;">
+            <strong>80G Tax Exemption:</strong> Your donation is eligible for 50% tax deduction under Section 80G. A formal receipt will be auto-generated after payment.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('donate-details-modal').classList.remove('open')" style="padding: 10px 20px;">Cancel</button>
+          <button type="submit" id="donate-submit-btn" class="btn btn-primary" style="padding: 10px 28px; font-size: 14px; font-weight: 700;">
+            💝 Confirm Donation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 80G Formal Tax Exemption Certificate Modal -->
   <div class="modal-backdrop" id="receipt-modal">
@@ -1909,19 +2066,95 @@
       }
     }
 
-    // Make Donation
-    async function makeDonation(campaignId, title) {
+    // Open Donation Details Modal
+    function makeDonation(campaignId, title) {
       const input = document.getElementById(`amt-${campaignId}`);
       const amount = Number(input?.value) || 1000;
 
-      const payload = {
-        campaignId,
-        amount,
-        donorName: currentUser ? currentUser.name : 'Priya Verma',
-        donorEmail: currentUser ? currentUser.email : 'priya@example.com',
-        paymentMethod: 'UPI',
-        panNumber: 'ABCDE1234F',
-      };
+      // Populate modal with campaign info & pre-fill user details
+      document.getElementById('donate-campaign-id').value = campaignId;
+      document.getElementById('donate-amount-hidden').value = amount;
+      document.getElementById('donate-campaign-name').innerText = title;
+      document.getElementById('donate-amount-display').innerText = `₹${amount.toLocaleString('en-IN')}`;
+
+      // Pre-fill from logged-in user
+      if (currentUser) {
+        document.getElementById('donor-name-input').value = currentUser.name || '';
+        document.getElementById('donor-email-input').value = currentUser.email || '';
+        document.getElementById('donor-pan-input').value = currentUser.panNumber || '';
+      }
+
+      // Reset error & payment method
+      document.getElementById('donate-form-error').style.display = 'none';
+      selectPayMethod(null, 'UPI'); // Default to UPI
+      document.getElementById('donate-submit-btn').disabled = false;
+      document.getElementById('donate-submit-btn').innerText = '💝 Confirm Donation';
+
+      // Open modal
+      document.getElementById('donate-details-modal').classList.add('open');
+    }
+
+    // Payment method selection highlight
+    let selectedPayMethod = 'UPI';
+    function selectPayMethod(label, method) {
+      selectedPayMethod = method;
+      ['UPI', 'CreditCard', 'NetBanking', 'DebitCard'].forEach(m => {
+        const card = document.getElementById(`pay-${m}`);
+        if (card) card.classList.toggle('active', m === method);
+      });
+    }
+
+    // Validate PAN format (e.g. ABCDE1234F)
+    function isValidPAN(pan) {
+      return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan.trim());
+    }
+
+    // Submit Donation after form validation
+    async function submitDonation(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('donate-form-error');
+      errorEl.style.display = 'none';
+
+      const campaignId   = document.getElementById('donate-campaign-id').value;
+      const amount       = Number(document.getElementById('donate-amount-hidden').value);
+      const donorName    = document.getElementById('donor-name-input').value.trim();
+      const donorEmail   = document.getElementById('donor-email-input').value.trim();
+      const panNumber    = document.getElementById('donor-pan-input').value.trim().toUpperCase();
+      const phone        = document.getElementById('donor-phone-input').value.trim();
+      const paymentMethod = selectedPayMethod;
+
+      // Validation
+      if (!donorName || donorName.length < 2) {
+        errorEl.innerText = '⚠️ Please enter your full name (at least 2 characters).';
+        errorEl.style.display = 'block';
+        document.getElementById('donor-name-input').focus();
+        return;
+      }
+      if (!donorEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail)) {
+        errorEl.innerText = '⚠️ Please enter a valid email address.';
+        errorEl.style.display = 'block';
+        document.getElementById('donor-email-input').focus();
+        return;
+      }
+      if (!panNumber || !isValidPAN(panNumber)) {
+        errorEl.innerText = '⚠️ PAN number must be in format: ABCDE1234F (5 letters + 4 digits + 1 letter).';
+        errorEl.style.display = 'block';
+        document.getElementById('donor-pan-input').focus();
+        return;
+      }
+      if (!phone || phone.length !== 10) {
+        errorEl.innerText = '⚠️ Please enter a valid 10-digit mobile number.';
+        errorEl.style.display = 'block';
+        document.getElementById('donor-phone-input').focus();
+        return;
+      }
+
+      // Show loading state
+      const submitBtn = document.getElementById('donate-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '⏳ Processing...';
+
+      const payload = { campaignId, amount, donorName, donorEmail, paymentMethod, panNumber };
 
       try {
         const res = await fetch('/api/donations', {
@@ -1935,15 +2168,25 @@
         const data = await res.json();
 
         if (data.success) {
-          showToast('Payment Successful! 🎉', `₹${amount.toLocaleString('en-IN')} donated. Receipt: ${data.data.donation.receiptNumber}`);
+          // Close donate modal
+          document.getElementById('donate-details-modal').classList.remove('open');
+          showToast('Payment Successful! 🎉', `₹${amount.toLocaleString('en-IN')} donated to the campaign. Receipt: ${data.data.donation.receiptNumber}`);
           setTimeout(() => {
             viewReceipt(data.data.donation._id);
           }, 600);
+          loadCampaigns();
         } else {
-          alert('Donation error: ' + data.message);
+          errorEl.innerText = '❌ ' + (data.message || 'Donation failed. Please try again.');
+          errorEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.innerText = '💝 Confirm Donation';
         }
       } catch (err) {
         console.error('Donation error:', err);
+        errorEl.innerText = '❌ Network error. Please check connection and try again.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerText = '💝 Confirm Donation';
       }
     }
 
