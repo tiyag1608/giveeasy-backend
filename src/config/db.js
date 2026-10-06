@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/giveeasy');
+    const rawUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/giveeasy';
+    const uri = rawUri.trim();
+    const conn = await mongoose.connect(uri);
     global.lastMongoError = null;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
   } catch (error) {
